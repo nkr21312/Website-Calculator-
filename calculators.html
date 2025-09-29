@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>File & Age Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f9fafb; margin: 0; padding: 20px; }
+    .container { max-width: 800px; margin: auto; }
+    .card { background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { font-size: 24px; }
+    h2 { font-size: 20px; margin-top: 0; }
+    input, select, button { padding: 8px; margin: 4px 0; }
+    button { cursor: pointer; }
+    .result { margin-top: 10px; font-weight: bold; }
+    small { color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>File & Age Calculator</h1>
+    <p>Two tools: estimate download time and calculate age.</p>
+
+    <div class="card">
+      <h2>File Download Calculator</h2>
+      <label>File size: <input type="number" id="fileSize"></label>
+      <select id="fileUnit"><option>KB</option><option selected>MB</option><option>GB</option><option>TB</option></select><br>
+      <label>Speed: <input type="number" id="speed"></label>
+      <select id="speedUnit"><option selected>Mbps</option><option>MBps</option></select><br>
+      <button onclick="calculateDownload()">Calculate</button>
+      <button onclick="resetDownload()">Reset</button>
+      <div class="result" id="downloadResult">—</div>
+      <small>Note: Real speeds vary by network conditions.</small>
+    </div>
+
+    <div class="card">
+      <h2>Age Calculator</h2>
+      <input type="date" id="dob"><br>
+      <button onclick="calculateAge()">Calculate</button>
+      <button onclick="resetAge()">Reset</button>
+      <div class="result" id="ageResult">—</div>
+      <small>Uses local timezone, Gregorian calendar.</small>
+    </div>
+  </div>
+
+<script>
+function sizeToMegabits(value, unit){
+  let v = parseFloat(value);
+  if(isNaN(v)||v<=0) return 0;
+  if(unit==='KB') return v*8/1024;
+  if(unit==='MB') return v*8;
+  if(unit==='GB') return v*8*1024;
+  if(unit==='TB') return v*8*1024*1024;
+  return v*8;
+}
+function speedToMegabits(v, unit){
+  let n = parseFloat(v);
+  if(isNaN(n)||n<=0) return 0;
+  if(unit==='Mbps') return n;
+  if(unit==='MBps') return n*8;
+  return n;
+}
+function formatTime(sec){
+  if(!isFinite(sec)||sec<=0) return '—';
+  let d=Math.floor(sec/86400); sec%=86400;
+  let h=Math.floor(sec/3600); sec%=3600;
+  let m=Math.floor(sec/60); sec=Math.floor(sec%60);
+  let parts=[];
+  if(d) parts.push(d+'d');
+  if(h) parts.push(h+'h');
+  if(m) parts.push(m+'m');
+  if(sec||parts.length===0) parts.push(sec+'s');
+  return parts.join(' ');
+}
+function calculateDownload(){
+  let fileSize=document.getElementById('fileSize').value;
+  let fileUnit=document.getElementById('fileUnit').value;
+  let speed=document.getElementById('speed').value;
+  let speedUnit=document.getElementById('speedUnit').value;
+  let fileMb=sizeToMegabits(fileSize,fileUnit);
+  let s=speedToMegabits(speed,speedUnit);
+  if(!fileMb||!s){ document.getElementById('downloadResult').innerText='—'; return; }
+  let sec=fileMb/s;
+  document.getElementById('downloadResult').innerText=formatTime(sec);
+}
+function resetDownload(){
+  document.getElementById('fileSize').value='';
+  document.getElementById('speed').value='';
+  document.getElementById('downloadResult').innerText='—';
+}
+function calculateAge(){
+  let dob=document.getElementById('dob').value;
+  if(!dob){ document.getElementById('ageResult').innerText='—'; return; }
+  let b=new Date(dob+'T00:00:00');
+  let now=new Date();
+  if(b>now){ document.getElementById('ageResult').innerText='Future date!'; return; }
+  let y=now.getFullYear()-b.getFullYear();
+  let m=now.getMonth()-b.getMonth();
+  let d=now.getDate()-b.getDate();
+  if(d<0){ let prev=new Date(now.getFullYear(),now.getMonth(),0); d+=prev.getDate(); m--; }
+  if(m<0){ m+=12; y--; }
+  document.getElementById('ageResult').innerText=y+' years, '+m+' months, '+d+' days';
+}
+function resetAge(){
+  document.getElementById('dob').value='';
+  document.getElementById('ageResult').innerText='—';
+}
+</script>
+</body>
+</html>
